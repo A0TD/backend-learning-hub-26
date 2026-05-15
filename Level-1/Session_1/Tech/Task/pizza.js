@@ -100,6 +100,8 @@ for (stop of stops) {
         break
 }
 
+order.isDelivered = true
+
 // Task Thirteen ---------------------------------------------
 
 // oh it turned out not to be related to coding, alright..
