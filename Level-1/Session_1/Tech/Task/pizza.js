@@ -56,7 +56,7 @@ else
 
 let isHungerMoreThanFive = hungerLevel > 5 // This is a boolean expression that returns true/false
 
-if(hungerLevel > 5) // An expression is an anction that gets executed when a condition is met
+if(hungerLevel > 5) // A statement is an action that gets executed when a condition is met
     console.log("Wow so this is what an expression is?")
 
 // Task Eight ---------------------------------------------
