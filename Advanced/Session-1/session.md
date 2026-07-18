@@ -1,5 +1,7 @@
 # Architectural Patterns & System Design
 
+## [Session Slides](https://docs.google.com/presentation/d/1Fk9CbIse8Z32luuN30bh3TbSD37y31BzV4svJfWqAhg/edit?usp=sharing)
+
 ## 📋 Session Agenda
 
 **Part 1: Why Architecture Exists**
