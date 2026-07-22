@@ -14,6 +14,7 @@
 6. [Auth Controller](#Auth-Controller)
 7. [Auth Middleware](#Auth-Middleware)
 5. [Auth Routes](#Auth-Routes)
+6. [Postman video](#Postman)
 9. [References](#References)
 
 ---
@@ -66,7 +67,7 @@ Examples:
 ```bash
 npm init -y
 npm install express jsonwebtoken bcryptjs cookie-parser dotenv
-npm install -D typescript ts-node @types/node @types/express @types/jsonwebtoken @types/bcryptjs @types/cookie-parser
+npm install -D typescript ts-node @types/node @types/express @types/jsonwebtoken @types/bcryptjs @types/cookie-parser nodemon
 npx tsc --init
 
 ```
@@ -87,21 +88,23 @@ To get started with authentication and authorization in a Node.js environment, y
 
 ```
 auth-project/
-│
+│___node_modules/
+|
 ├── src/
-│   ├── data/
-│   │   └── users.data.js
-│   ├── controllers/
-│   │   └── auth.controller.js
-│   ├── middlewares/
-│   │   └── auth.middleware.js
+│   ├── Data/
+│   │   └── data.ts
+│   ├── controller/
+│   │   └── controller.ts
+│   ├── middleware/
+│   │   └── middleware.ts
 │   ├── routes/
-│   │   └── auth.routes.js
-│   └── server.js
+│   │   └── routes.ts
+│   └── server.ts
 │
 ├── .env
 ├── .gitignore
 ├── package.json
+├── tsconfig.json
 └── package-lock.json
 ```
 
@@ -122,29 +125,32 @@ PORT=3000
 ### `src/server.ts`
 
 ```ts
-import express from "express";
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import Routes from "./routes/auth.routes";
+import dotenv from "dotenv"
+import express from "express"
+import {router} from "./routes/routes"
+import cookieparser from "cookie-parser"
+dotenv.config()
+const Port = process.env.PORT || 3000
 
-const app = express();
-const PORT = process.env.PORT;
+const app =express()
 
-app.use(express.json());
-app.use(cookieParser());
 
-app.use("/auth", Routes);
+app.use(cookieparser())
+app.use(express.json())
 
-app.listen(PORT, () => {
-  console.log("server is running");
-});
+app.use("/auth", router)
+
+app.listen(Port ,() => {
+console.log (`server is rinnimg on port ${Port}`)
+}
+)
 
 ```
 
 ---
 ## Database
 
-### `src/Data/users.data.ts`
+### `src/Data/data.ts`
 
 ```ts
 export interface User {
@@ -156,22 +162,23 @@ export interface User {
 }
 
 export const users: User[] = [
-  {
+    {
     id: 1,
     username: "ًwafaa",
     email: "admin@test.com",
-    password: "$2a$10$abcdefghijklmnopqrstuv",
+    //(if you tried to sign in with this user use 123456 as password > before hashing)
+    password: "$2b$10$OPvm12RhYc6mrjnQMQkvOOwrnachLB3ClkHWUrDq8FEaJNRkaiX9u",
     role: "admin",
   },
   {
     id: 2,
     username: "omnia",
-    email: "user@test.com",
-    password: "$2a$10$abcdefghijklmnopqrstuv",
+    email: "omnia@test.com",
+    //password = 666666  before hashing
+    password: "$2b$10$9OPfojaUKN5KWkYsNgUuUecKwSCrD3y3OML3TwW9mGMadT3POQkPK",
     role: "user",
   },
 ];
-
 
 ```
 
@@ -181,7 +188,7 @@ export const users: User[] = [
 
 In your controller, you will define the logic for registering, logging in, and logging out users.
 
-### `src/controllers/auth.controller.ts`
+### `src/controller/controller.ts`
 
 
 
@@ -189,37 +196,38 @@ In your controller, you will define the logic for registering, logging in, and l
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { users } from "../data/users.data";
+import { users , User } from "../data/users.data";
 
 const maxAge = 60 * 60; // 1 hour
 
-const createToken = (id: number): string => {
-  return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+const createToken = (id: number ,role :string): string => {
+  return jwt.sign({ id , role }, process.env.JWT_SECRET as string, {
     expiresIn: maxAge,
-  });
-};
+  })
+}
 
 ```
 ###  Signup
 ```ts
 const signUp = async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body
 
-    const userExists = users.find(u => u.email === email);
+    const userExists = users.find(u => u.email === email)
 
     if (userExists) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(400).json({ msg: "User already exists" })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     const newUser: User = {
       id: users.length + 1,
       username,
       email,
       password: hashedPassword,
-    };
+      role :"user"
+    }
 
     users.push(newUser);
 
@@ -228,9 +236,9 @@ const signUp = async (req: Request, res: Response) => {
       data: newUser,
     });
   } catch (error) {
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ msg: "Server error" })
   }
-};
+}
 
 ```
 
@@ -239,33 +247,33 @@ const signUp = async (req: Request, res: Response) => {
 ```ts
 const signIn = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
-    const user = users.find(u => u.email === email);
+    const user = users.find(u => u.email === email)
     if (!user) {
-      return res.status(400).json({ msg: "Invalid email or password" });
+      return res.status(400).json({ msg: "Invalid email or password" })
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid email or password" });
+      return res.status(400).json({ msg: "Invalid email or password" })
     }
 
-    const token = createToken(user.id);
+    const token = createToken(user.id , user.role)
 
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: maxAge * 1000,
-    });
+    })
 
     res.status(200).json({
       status: 200,
       data: user,
-    });
+    })
   } catch (error) {
-    res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error" })
   }
-};
+}
 ```
 
 ---
@@ -273,83 +281,90 @@ const signIn = async (req: Request, res: Response) => {
 ### Signout
 
 ```ts
-const signOut = (req: Request, res: Response): void => {
-  res.clearCookie("token");
+const signOut = (req: Request, res: Response)=> {
+  res.clearCookie("token")
 
   res.status(200).json({
     status: 200,
     msg: "Logged out successfully",
-  });
-};
-export { signUp, signIn, signOut };
+  })
+}
+
+//veiwAllusers
+
+ const veiwAllusers = (req :Request ,res :Response) => {
+ res.status(200).json({data :users})
+ }
+
+ export {signOut, signUp,signIn ,veiwAllusers}
+
 ```
 
 ---
 
 ##  Auth Middleware
 
-### `src/middlewares/auth.middleware.ts`
+### `src/middleware/middleware.ts`
 
 ### Authentication Middleware
 
 ```ts
-iimport { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express"
+import jwt from "jsonwebtoken"
 
-const authentication = (
+const authorization = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+) => {
 
   const token = req.cookies?.token;
 
-
   if (!token) {
-    res.status(401).json({ msg: "Unauthorized" });
-    return;
+   return res.status(401).json({ msg: "Unauthorized" })
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET as string);
+   const decoded = jwt.verify(token ,process.env.JWT_SECRET as string) as { id: number , role :string}
 
+if(decoded.role !== "admin"){
+    return res.status(401).json({msg:"unauthorized"})
+}
 
-    next();
+  next()
+
   } catch (error) {
-    res.status(401).json({ msg: "Invalid token" });
+    return res.status(401).json({ msg: "Invalid token" })
   }
-};
+}
 
-export { authentication };
+export { authorization }
 
 ```
 ---
 
 ##  Routes
 
-### `src/routes/auth.routes.ts`
+### `src/routes/routes.ts`
 
 ```ts
-import { Router, Request, Response } from "express";
-import { signUp, signIn, signOut } from "../controllers/auth.controller";
-import { authentication } from "../middlewares/auth.middleware";
+import {signOut, signUp , signIn , veiwAllusers} from "../controller/authController"
+import {authorization} from "../middleware/middleware"
+import {Router} from "express"
 
-const router = Router();
+const router =Router()
 
-router.post("/signup", signUp);
-router.post("/signin", signIn);
-router.get("/signout", signOut);
+router.post("/signUp",signUp)
+router.post("/signIn",signIn)
+router.get("/signOut",signOut)
 
-router.get("/profile", authentication, (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 200,
-    msg: "You are authenticated",
-  });
-});
+router.get("/Users" ,authorization ,veiwAllusers)
 
-export { router };
-
+export {router}
 ```
+---
+## Postman video(testing endPoints)
+https://drive.google.com/file/d/1BID2xLCKj1ilIYcP4CYtPFGRuTX2mCTg/view?usp=sharing
 ---
 
 ## References
