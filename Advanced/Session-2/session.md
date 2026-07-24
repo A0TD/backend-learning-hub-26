@@ -15,15 +15,20 @@
 ## - Jest and SuperTest complement each other when testing backend APIs. Jest provides the testing framework—it runs the tests, organizes them, and verifies the expected results using assertions. SuperTest is responsible for sending HTTP requests (such as GET, POST, PUT, and DELETE) to the application and capturing the responses. Together, they allow developers to automatically test API endpoints and verify that the application behaves as expected, making backend testing fast, reliable, and repeatable.
 
 ## Getting Started:
+```js
 npm install --save-dev jest supertest
+```
 ## server.js
+```js
 const app = require("./app");
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
+```
 
 ## app.js
+```js
 const express = require("express");
 
 const app = express();
@@ -83,8 +88,10 @@ app.post("/users", (req, res) => {
 });
 
 module.exports = app;
+```
 
 ## app.test.js
+```js
 const request = require("supertest");
 const app = require("../app");
 
@@ -171,6 +178,7 @@ describe("API Endpoint Tests", () => {
   });
 
 });
+```
 
 
 ## Port Conflict Problem :
