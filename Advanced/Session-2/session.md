@@ -12,134 +12,18 @@
 
 
 
-##### - Jest and SuperTest complement each other when testing backend APIs. 
-
-##### - Jest provides the testing framework—it runs the tests, organizes them, and verifies the expected results using assertions. 
-
-##### - SuperTest is responsible for sending HTTP requests (such as GET, POST, PUT, and DELETE) to the application and capturing the responses. 
-
-##### - Together, they allow developers to automatically test API endpoints and verify that the application behaves as expected, making backend testing fast, reliable, and repeatable.
+## - Jest and SuperTest complement each other when testing backend APIs. Jest provides the testing framework—it runs the tests, organizes them, and verifies the expected results using assertions. SuperTest is responsible for sending HTTP requests (such as GET, POST, PUT, and DELETE) to the application and capturing the responses. Together, they allow developers to automatically test API endpoints and verify that the application behaves as expected, making backend testing fast, reliable, and repeatable.
 
 ## Getting Started:
-```js
 npm install --save-dev jest supertest
-```
 ## server.js
-```js
 const app = require("./app");
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
-```
-
-## app.test.js
-```js
-const request = require("supertest");
-const app = require("../app");
-
-describe("API Endpoint Tests", () => {
-
-  describe("GET /", () => {
-
-    it("should return API status", async () => {
-
-      const res = await request(app)
-        .get("/");
-
-      expect(res.status).toBe(200);
-
-      expect(res.body.message)
-        .toBe("API is running");
-    });
-
-  });
-
-  describe("GET /users", () => {
-
-    it("should return all users", async () => {
-
-      const res = await request(app)
-        .get("/users");
-
-      expect(res.status).toBe(200);
-
-      expect(Array.isArray(res.body))
-        .toBe(true);
-
-      expect(res.body.length)
-        .toBeGreaterThan(0);
-    });
-
-  });
-
-  describe("GET /users/:id", () => {
-
-    it("should return one user", async () => {
-
-      const res = await request(app)
-        .get("/users/1");
-
-      expect(res.status).toBe(200);
-
-      expect(res.body.name)
-        .toBe("Ahmed");
-    });
-
-    it("should return 404 if user does not exist", async () => {
-
-      const res = await request(app)
-        .get("/users/100");
-
-      expect(res.status).toBe(404);
-
-      expect(res.body.message)
-        .toBe("User not found");
-    });
-
-  });
-
-  describe("POST /users", () => {
-
-    it("should create a new user", async () => {
-
-      const res = await request(app)
-        .post("/users")
-        .send({
-          name: "John"
-        });
-
-      expect(res.status).toBe(201);
-
-      expect(res.body.name)
-        .toBe("John");
-    });
-
-    it("should reject empty request body", async () => {
-
-      const res = await request(app)
-        .post("/users")
-        .send({});
-
-      expect(res.status).toBe(400);
-
-      expect(res.body.message)
-        .toBe("Name is required");
-    });
-
-  });
-
-});
-```
-
-
-## Running the Tests
-```js
-npm test
-```
 
 ## app.js
-```js
 const express = require("express");
 
 const app = express();
@@ -199,8 +83,111 @@ app.post("/users", (req, res) => {
 });
 
 module.exports = app;
+
+## app.test.js
+const request = require("supertest");
+const app = require("../app");
+
+describe("API Endpoint Tests", () => {
+
+  describe("GET /", () => {
+
+    it("should return API status", async () => {
+
+      const res = await request(app).get("/");
+
+      expect(res.status).toBe(200);
+
+      expect(res.body.message)
+        .toBe("API is running");
+    });
+
+  });
+
+  describe("GET /users", () => {
+
+    it("should return all users", async () => {
+
+      const res = await request(app).get("/users");
+
+      expect(res.status).toBe(200);
+
+      expect(Array.isArray(res.body))
+        .toBe(true);
+
+      expect(res.body.length).toBeGreaterThan(0);
+    });
+
+  });
+
+  describe("GET /users/:id", () => {
+
+    it("should return one user", async () => {
+
+      const res = await request(app).get("/users/1");
+
+      expect(res.status).toBe(200);
+
+      expect(res.body.name).toBe("Ahmed");
+    });
+
+    it("should return 404 if user does not exist", async () => {
+
+      const res = await request(app).get("/users/100");
+
+      expect(res.status).toBe(404);
+
+      expect(res.body.message).toBe("User not found");
+    });
+
+  });
+
+  describe("POST /users", () => {
+
+    it("should create a new user", async () => {
+
+      const res = await request(app)
+        .post("/users")
+        .send({
+          name: "John"
+        });
+
+      expect(res.status).toBe(201);
+
+      expect(res.body.name).toBe("John");
+    });
+
+    it("should reject empty request body", async () => {
+
+      const res = await request(app)
+        .post("/users")
+        .send({});
+
+      expect(res.status).toBe(400);
+
+      expect(res.body.message).toBe("Name is required");
+    });
+
+  });
+
+});
+
+
+## Port Conflict Problem :
+### - If app.listen(3000) runs inside your main application file, every test file that imports your app will try to bind to port 3000. This triggers EADDRINUSE (address already in use) errors.
+
+### so Separating them allows your test runner to launch multiple test files in parallel without crashing over shared ports.
+
+## How Does SuperTest Test APIs Calling app.listen()?
+### - Instead of starting a real server, it imports the Express app, creates a temporary in-memory HTTP server (a lightweight web server that runs entirely in (RAM) memory ), and sends fake HTTP requests directly through Express's middleware, routes, and controllers.
+
+### Since no real network port is opened, tests run faster, avoid "port already in use" errors, and still verify the API exactly as it behaves in production.
+
+
+## Running the Tests
+```js
+npm test
 ```
----
 
 # Logging in Node.js using Winston 
 ##### - Logging is a critical part of any application. 
