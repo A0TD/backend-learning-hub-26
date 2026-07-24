@@ -1,3 +1,4 @@
+```
 npm init -y
 
 npm install express
@@ -5,8 +6,9 @@ npm install express
 npm install -D typescript @types/node @types/express ts-node nodemon
 
 npx tsc --init
-
+```
 tsconfig.json
+```
 {
   "target": "ES6",
   "module": "commonjs",
@@ -15,15 +17,20 @@ tsconfig.json
    "verbatimModuleSyntax": false,
 
 }
+```
 
-package.json
+package.json:
+```
 "scripts": {
   "build": "tsc",
   "start": "node dist/app.js",
   "dev": "nodemon src/app.ts"
 }
+```
 
-
+how to run:
+```
 npm run dev
+```
 
 
